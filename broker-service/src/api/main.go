@@ -2,7 +2,7 @@ package main
 
 import "log"
 
-const PORT = ":3000"
+const PORT = ":8080"
 
 type Config struct{}
 
