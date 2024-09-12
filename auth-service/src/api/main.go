@@ -9,7 +9,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-const PORT = ":8080"
+const PORT = ":9090"
 
 type Config struct{
 	DB *pgxpool.Pool
@@ -17,7 +17,7 @@ type Config struct{
 }
 
 func main() {
-	connPool, err := pgxpool.New(context.Background(), os.Getenv("DB_STR"))
+	connPool, err := pgxpool.New(context.Background(), os.Getenv("DB_SOURCE"))
 	if err != nil {
 		log.Panic("error connecting to database")
 	}

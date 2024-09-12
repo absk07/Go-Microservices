@@ -1,4 +1,22 @@
 services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      - POSTGRES_USER=root
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=auth
+    ports:
+      - "3000:5432"
+    restart: always
+    deploy:
+      mode: replicated
+      replicas: 1
+    healthcheck:
+      test: pg_isready -U "$$POSTGRES_USER" -d "$$POSTGRES_DB"
+      interval: 10s
+      timeout: 2s
+      retries: 10
+
   broker-service:
     build:
       context: .
@@ -9,3 +27,19 @@ services:
     deploy:
       mode: replicated
       replicas: 1
+
+  auth-service:
+    depends_on:
+      postgres:
+        condition: service_healthy
+    build:
+      context: .
+      dockerfile: ./auth-service/Dockerfile
+    restart: always
+    ports:
+      - "9090:9090"
+    deploy:
+      mode: replicated
+      replicas: 1
+    environment:
+      - DB_SOURCE=postgresql://root:password@go-microservices-postgres-1:5432/auth?sslmode=disable
