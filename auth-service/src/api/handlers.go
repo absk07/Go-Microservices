@@ -39,9 +39,9 @@ func (app *Config) Login(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{
+	ctx.JSON(http.StatusAccepted, gin.H{
 		"error": false,
-		"message": "Logged in successfully",
+		"message": "User logged in successfully",
 		"data": user,
 	})
 }

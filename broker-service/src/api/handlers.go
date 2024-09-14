@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	// "log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -57,9 +58,10 @@ func (app *Config) HandleSubmission(ctx *gin.Context) {
 func (app *Config) authenticate(ctx *gin.Context, authPayload AuthPayload) {
 	jsonData, _ := json.MarshalIndent(authPayload, "", "\t")
 
-	request, err := http.NewRequest("POST", "http://go-microservices-auth-service-1/login", bytes.NewBuffer(jsonData))
+	request, err := http.NewRequest("POST", "http://auth-service:9090/login", bytes.NewBuffer(jsonData))
 
 	if err != nil {
+		// log.Println("http req err", err)
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"error":   true,
 			"message": err,
@@ -68,9 +70,10 @@ func (app *Config) authenticate(ctx *gin.Context, authPayload AuthPayload) {
 	}
 
 	client := &http.Client{}
-	response, err :=  client.Do(request)
+	response, err := client.Do(request)
 
 	if err != nil {
+		// log.Println("http res err", err)
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"error":   true,
 			"message": err,
@@ -78,6 +81,11 @@ func (app *Config) authenticate(ctx *gin.Context, authPayload AuthPayload) {
 		return
 	}
 	defer response.Body.Close()
+
+
+	// log.Println("response", response)
+	// log.Println("res code", response.StatusCode)
+	// log.Println("http code", http.StatusAccepted)
 
 	if response.StatusCode == http.StatusUnauthorized {
 		ctx.JSON(http.StatusBadRequest, gin.H{
@@ -97,6 +105,7 @@ func (app *Config) authenticate(ctx *gin.Context, authPayload AuthPayload) {
 	err = json.NewDecoder(response.Body).Decode(&data)
 
 	if err != nil {
+		// log.Println("json decoder err", err)
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"error":   true,
 			"message": err,
@@ -105,6 +114,7 @@ func (app *Config) authenticate(ctx *gin.Context, authPayload AuthPayload) {
 	}
 
 	if data.Error {
+		// log.Println("data err", err)
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"error":   true,
 			"message": err,
@@ -113,8 +123,8 @@ func (app *Config) authenticate(ctx *gin.Context, authPayload AuthPayload) {
 	}
 
 	ctx.JSON(http.StatusAccepted, gin.H{
-		"error": false,
+		"error":   false,
 		"message": "Authenticated!",
-		"data": data.Data,
+		"data":    data.Data,
 	})
 }
