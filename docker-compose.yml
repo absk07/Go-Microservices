@@ -16,6 +16,18 @@ services:
       interval: 10s
       timeout: 2s
       retries: 10
+    volumes:
+      - data-volume:/var/lib/postgresql/data
+
+  mongo:
+    image: mongo
+    ports:
+      - 27017:27017
+    restart: always
+    environment:
+      - MONGO_INITDB_DATABASE=logs
+    volumes:
+      - data-volume:/var/lib/mongodb/data
 
   broker-service:
     build:
@@ -43,3 +55,19 @@ services:
       replicas: 1
     environment:
       - DB_SOURCE=postgresql://root:password@go-microservices-postgres-1:5432/auth?sslmode=disable
+
+  logger-service:
+    depends_on:
+      - mongo
+    build:
+      context: .
+      dockerfile: ./logger-service/Dockerfile
+    restart: always
+    ports:
+      - "7070:7070"
+    deploy:
+      mode: replicated
+      replicas: 1
+
+volumes:
+  data-volume:
