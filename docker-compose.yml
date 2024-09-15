@@ -35,6 +35,9 @@ services:
       - data-volume:/var/lib/mongodb/data
 
   broker-service:
+    depends_on:
+      - auth-service
+      - logger-service
     build:
       context: .
       dockerfile: ./broker-service/Dockerfile
