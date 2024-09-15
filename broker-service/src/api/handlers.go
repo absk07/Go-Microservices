@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 
-	"log"
+	// "log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -32,17 +32,16 @@ type RequestPayload struct {
 }
 
 type AuthPayload struct {
-	Email    string `json:"email" binding:"required,email"`
-	Password string `json:"password" binding:"required"`
+	Email    string `json:"email"`
+	Password string `json:"password"`
 }
 
 type LogPayload struct {
-	Name string `json:"name" binding:"required"`
-	Data string `json:"data" binding:"required"`
+	Name string `json:"name"`
+	Data string `json:"data"`
 }
 
 func (app *Config) HandleSubmission(ctx *gin.Context) {
-	log.Println("before req body")
 	var req RequestPayload
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
@@ -51,8 +50,6 @@ func (app *Config) HandleSubmission(ctx *gin.Context) {
 		})
 		return
 	}
-
-	log.Println("req body", req)
 
 	switch req.Action {
 	case "auth":
