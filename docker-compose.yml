@@ -26,6 +26,11 @@ services:
     restart: always
     environment:
       - MONGO_INITDB_DATABASE=logs
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh mongo:27017/logs --quiet
+      interval: 10s
+      timeout: 10s
+      retries: 5
     volumes:
       - data-volume:/var/lib/mongodb/data
 
@@ -58,7 +63,8 @@ services:
 
   logger-service:
     depends_on:
-      - mongo
+      mongo:
+        condition: service_healthy
     build:
       context: .
       dockerfile: ./logger-service/Dockerfile
