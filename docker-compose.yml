@@ -34,10 +34,17 @@ services:
     volumes:
       - data-volume:/var/lib/mongodb/data
 
+  mailhog:
+    image: mailhog/mailhog:latest
+    ports:
+      - 1025:1025
+      - 8025:8025
+
   broker-service:
     depends_on:
       - auth-service
       - logger-service
+      - mail-service
     build:
       context: .
       dockerfile: ./broker-service/Dockerfile
@@ -77,6 +84,28 @@ services:
     deploy:
       mode: replicated
       replicas: 1
+
+  mail-service:
+    depends_on:
+      - mailhog
+    build:
+      context: .
+      dockerfile: ./mail-service/Dockerfile
+    restart: always
+    ports:
+      - "6060:6060"
+    deploy:
+      mode: replicated
+      replicas: 1
+    environment:
+      - MAIL_DOMAIN=localhost
+      - MAIL_HOST=mailhog
+      - MAIL_PORT=1025
+      - MAIL_USERNAME=
+      - MAIL_PASSWORD=
+      - MAIL_ENCRYPTION=none
+      - FROM_NAME=John Doe
+      - FROM_ADDRESS=john.doe@example.com
 
 volumes:
   data-volume:
