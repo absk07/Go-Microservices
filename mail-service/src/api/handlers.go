@@ -33,7 +33,7 @@ func (app *Config) SendMail(ctx *gin.Context) {
 	err := app.Mailer.SendSMTPMessage(msg)
 
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{
+		ctx.JSON(http.StatusOK, gin.H{
 			"error": true,
 			"message": err,
 		})
