@@ -29,6 +29,7 @@ type RequestPayload struct {
 	Action string      `json:"action"`
 	Auth   AuthPayload `json:"auth,omitempty"`
 	Log    LogPayload  `json:"log,omitempty"`
+	Mail   MailPayload `json:"mail,omitempty"`
 }
 
 type AuthPayload struct {
@@ -39,6 +40,13 @@ type AuthPayload struct {
 type LogPayload struct {
 	Name string `json:"name"`
 	Data string `json:"data"`
+}
+
+type MailPayload struct {
+	From    string `json:"from"`
+	To      string `json:"to"`
+	Subject string `json:"subject"`
+	Message string `json:"message"`
 }
 
 func (app *Config) HandleSubmission(ctx *gin.Context) {
@@ -56,6 +64,8 @@ func (app *Config) HandleSubmission(ctx *gin.Context) {
 		app.authenticate(ctx, req.Auth)
 	case "log":
 		app.logger(ctx, req.Log)
+	case "mail":
+		app.sendMail(ctx, req.Mail)
 	default:
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"error":   true,
@@ -96,13 +106,13 @@ func (app *Config) authenticate(ctx *gin.Context, authPayload AuthPayload) {
 	// log.Println("http code", http.StatusAccepted)
 
 	if response.StatusCode == http.StatusUnauthorized {
-		ctx.JSON(http.StatusBadRequest, gin.H{
+		ctx.JSON(http.StatusUnauthorized, gin.H{
 			"error":   true,
 			"message": "invalid credentials!",
 		})
 		return
 	} else if response.StatusCode != http.StatusAccepted {
-		ctx.JSON(http.StatusBadRequest, gin.H{
+		ctx.JSON(http.StatusInternalServerError, gin.H{
 			"error":   true,
 			"message": "error calling auth service!",
 		})
@@ -169,7 +179,7 @@ func (app *Config) logger(ctx *gin.Context, logPayload LogPayload) {
 	// log.Println("http code", http.StatusAccepted)
 
 	if response.StatusCode != http.StatusAccepted {
-		ctx.JSON(http.StatusBadRequest, gin.H{
+		ctx.JSON(http.StatusInternalServerError, gin.H{
 			"error":   true,
 			"message": "error calling log service!",
 		})
@@ -201,5 +211,46 @@ func (app *Config) logger(ctx *gin.Context, logPayload LogPayload) {
 		"error":   false,
 		"message": "Logged!",
 		"data":    data.Data,
+	})
+}
+
+func (app *Config) sendMail(ctx *gin.Context, mailPayload MailPayload) {
+	jsonData, _ := json.Marshal(mailPayload)
+
+	request, err := http.NewRequest("POST", "http://mail-service:6060/send", bytes.NewBuffer(jsonData))
+
+	if err != nil {
+		// log.Println("http req err", err)
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"error":   true,
+			"message": err,
+		})
+		return
+	}
+
+	client := &http.Client{}
+	response, err := client.Do(request)
+
+	if err != nil {
+		// log.Println("http res err", err)
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"error":   true,
+			"message": err,
+		})
+		return
+	}
+	defer response.Body.Close()
+
+	if response.StatusCode != http.StatusOK {
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"error":   true,
+			"message": "error calling mail service!",
+		})
+		return
+	}
+
+	ctx.JSON(http.StatusAccepted, gin.H{
+		"error":   false,
+		"message": "Email sent",
 	})
 }
