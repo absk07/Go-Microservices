@@ -15,6 +15,7 @@ FROM alpine:3.20
 WORKDIR /app
 
 COPY --from=builder /app/mailApp /app
+COPY --from=builder /app/templates /templates
 
 EXPOSE 6060
 
