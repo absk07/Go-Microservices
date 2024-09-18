@@ -3,8 +3,10 @@ package main
 import (
 	"bytes"
 	"encoding/json"
-	"log"
+
+	// "log"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -13,20 +15,14 @@ func jsonLoggerMiddleware() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		ctx.Next()
 
-		logs := make(map[string]any)
+		status_code := strconv.Itoa(ctx.Writer.Status())
+		path := ctx.Request.URL.Path
+		method := ctx.Request.Method
+		start_time := ctx.Request.Header.Get("Date")
+		remote_addr := ctx.ClientIP()
+		response_time := ctx.Writer.Header().Get("X-Response-Time")
 
-		logs["status_code"] = ctx.Writer.Status()
-		logs["path"] = ctx.Request.URL.Path
-		logs["method"] = ctx.Request.Method
-		logs["start_time"] = ctx.Request.Header.Get("Date")
-		logs["remote_addr"] = ctx.ClientIP()
-		logs["response_time"] = ctx.Writer.Header().Get("X-Response-Time")
-
-		s, _ := json.Marshal(logs)
-
-		log.Println("****LOGS****", string(s)+"\n")
-
-		err := logRequest("name", string(s))
+		err := logRequest(method, path, remote_addr, response_time, start_time, status_code)
 		if err != nil {
 			ctx.AbortWithStatusJSON(http.StatusServiceUnavailable, gin.H{
 				"error":   true,
@@ -37,14 +33,22 @@ func jsonLoggerMiddleware() gin.HandlerFunc {
 	}
 }
 
-func logRequest(name, data string) error {
+func logRequest(method, path, remote_addr, response_time, start_time, status_code string) error {
 	var entry struct {
-		Name string `json:"name"`
-		Data string `json:"data"`
+		Method       string `json:"method"`
+		Path         string `json:"path"`
+		RemoteAddr   string `json:"remote_addr"`
+		ResponseTime string `json:"response_time"`
+		StartTime    string `json:"start_time"`
+		StatusCode   string `json:"status_code"`
 	}
 
-	entry.Name = name
-	entry.Data = data
+	entry.Method = method
+	entry.Path = path
+	entry.RemoteAddr = remote_addr
+	entry.ResponseTime = response_time
+	entry.StartTime = start_time
+	entry.StatusCode = status_code
 
 	jsonData, _ := json.Marshal(entry)
 
