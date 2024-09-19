@@ -21,6 +21,7 @@ func (app *Config) Routes() *gin.Engine {
 		})
 	})
 
+	router.POST("/register", app.Register)
 	router.POST("/login", app.Login)
 
 	return router
