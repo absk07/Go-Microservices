@@ -17,7 +17,7 @@ services:
       timeout: 2s
       retries: 10
     volumes:
-      - data-volume:/var/lib/postgresql/data
+      - postgres-data:/var/lib/postgresql/data
 
   mongo:
     image: mongo
@@ -32,7 +32,7 @@ services:
       timeout: 10s
       retries: 5
     volumes:
-      - data-volume:/var/lib/mongodb/data
+      - mongo-data:/var/lib/mongodb/data
 
   mailhog:
     image: mailhog/mailhog:latest
@@ -108,4 +108,5 @@ services:
       - FROM_ADDRESS=john.doe@example.com
 
 volumes:
-  data-volume:
+  postgres-data:
+  mongo-data:
