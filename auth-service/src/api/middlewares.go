@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"time"
 
 	// "log"
 	"net/http"
@@ -13,12 +14,19 @@ import (
 
 func jsonLoggerMiddleware() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
+		startTime := time.Now()
+		
 		ctx.Next()
+
+		endTime := time.Now()
+		duration := endTime.Sub(startTime)
+
+		ctx.Writer.Header().Set("X-Response-Time", strconv.FormatFloat(duration.Seconds()*1000, 'f', 2, 64)+"ms")
 
 		status_code := strconv.Itoa(ctx.Writer.Status())
 		path := ctx.Request.URL.Path
 		method := ctx.Request.Method
-		start_time := ctx.Request.Header.Get("Date")
+		start_time := startTime.Format(time.RFC3339)
 		remote_addr := ctx.ClientIP()
 		response_time := ctx.Writer.Header().Get("X-Response-Time")
 
