@@ -32,7 +32,7 @@ services:
       timeout: 10s
       retries: 5
     volumes:
-      - mongo-data:/var/lib/mongodb/data
+      - mongo-data:/data/db
 
   mailhog:
     image: mailhog/mailhog:latest
