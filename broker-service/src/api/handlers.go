@@ -147,9 +147,17 @@ func (app *Config) register(ctx *gin.Context, registerPayload RegisterPayload) {
 		return
 	}
 
+	if data.Error {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"error":   true,
+			"message": data.Message,
+		})
+		return
+	}
+
 	ctx.JSON(http.StatusAccepted, gin.H{
-		"error":   false,
-		"message": "User registered successfully",
+		"error":   data.Error,
+		"message": data.Message,
 	})
 }
 
@@ -190,7 +198,7 @@ func (app *Config) login(ctx *gin.Context, loginPayload LoginPayload) {
 			"message": "invalid credentials!",
 		})
 		return
-	} else if response.StatusCode != http.StatusAccepted {
+	} else if response.StatusCode != http.StatusAccepted || response.StatusCode == http.StatusInternalServerError {
 		ctx.JSON(http.StatusInternalServerError, gin.H{
 			"error":   true,
 			"message": "error calling auth service!",
@@ -211,17 +219,16 @@ func (app *Config) login(ctx *gin.Context, loginPayload LoginPayload) {
 	}
 
 	if data.Error {
-		// log.Println("data err", err)
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"error":   true,
-			"message": err,
+			"message": data.Message,
 		})
 		return
 	}
 
 	ctx.JSON(http.StatusAccepted, gin.H{
-		"error":   false,
-		"message": "Authenticated!",
+		"error":   data.Error,
+		"message": data.Message,
 		"data":    data.Data,
 	})
 }
