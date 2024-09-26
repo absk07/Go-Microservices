@@ -7,6 +7,7 @@ import (
 	// "log"
 	"net/http"
 
+	"github.com/broker-service/events"
 	"github.com/gin-gonic/gin"
 )
 
@@ -73,7 +74,7 @@ func (app *Config) HandleSubmission(ctx *gin.Context) {
 	case "login":
 		app.login(ctx, req.Login)
 	case "log":
-		app.logger(ctx, req.Log)
+		app.logEventViaRabbitMQ(ctx, req.Log)
 	case "mail":
 		app.sendMail(ctx, req.Mail)
 	default:
@@ -329,4 +330,41 @@ func (app *Config) sendMail(ctx *gin.Context, mailPayload MailPayload) {
 		"error":   false,
 		"message": "Email sent",
 	})
+}
+
+func (app *Config) logEventViaRabbitMQ(ctx *gin.Context, logPayload LogPayload) {
+	err := app.PushToQueue(logPayload.Name, logPayload.Data)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"error":   true,
+			"message": err,
+		})
+		return
+	}
+
+	ctx.JSON(http.StatusAccepted, gin.H{
+		"error":   false,
+		"message": "Logged via rabbitmq",
+	})
+}
+
+func (app *Config) PushToQueue(name, msg string) error {
+	emtter, err := events.NewEventEmitter(app.RabbitConn)
+	if err != nil {
+		return err
+	}
+
+	payload := LogPayload{
+		Name: name,
+		Data: msg,
+	}
+
+	data, _ := json.Marshal(&payload)
+
+	err = emtter.Push(string(data), "log.INFO")
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
