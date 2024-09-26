@@ -16,6 +16,4 @@ WORKDIR /app
 
 COPY --from=builder /app/listenerApp /app
 
-EXPOSE 5050
-
 CMD ["/app/listenerApp"]

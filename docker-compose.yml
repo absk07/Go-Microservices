@@ -78,8 +78,6 @@ services:
       context: .
       dockerfile: ./listener-service/Dockerfile
     restart: always
-    ports:
-      - "5050:5050"
     deploy:
       mode: replicated
       replicas: 1
