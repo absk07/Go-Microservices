@@ -16,7 +16,7 @@ func main() {
 	defer conn.Close()
 
 	// start listening for mesages
-	log.Println("Listenibg and consuming for RabbitMQ messages")
+	log.Println("Listening and consuming for RabbitMQ messages")
 
 	// create consumer
 	consumer, err := events.NewConsumer(conn)
@@ -32,7 +32,7 @@ func main() {
 }
 
 func connect() (*amqp.Connection, error) {
-	conn, err := amqp.Dial("amqp://guest:guest@localhost:5672/")
+	conn, err := amqp.Dial("amqp://guest:guest@rabbitmq:5672/")
 	if err != nil {
 		log.Panicf("Error connecting to rabbitmq: %s", err)
 		return nil, err

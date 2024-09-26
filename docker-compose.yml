@@ -41,24 +41,45 @@ services:
       - 8025:8025
 
   rabbitmq:
-    image: rabbitmq:3.13.7-alpine
+    image: rabbitmq:3.13.7-management-alpine
     ports:
       - "5672:5672"
+      - "15672:15672"
     deploy:
       mode: replicated
       replicas: 1
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
 
   broker-service:
     depends_on:
       - auth-service
       - logger-service
       - mail-service
+      - listener-service
     build:
       context: .
       dockerfile: ./broker-service/Dockerfile
     restart: always
     ports:
       - "8080:8080"
+    deploy:
+      mode: replicated
+      replicas: 1
+
+  listener-service:
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    build:
+      context: .
+      dockerfile: ./listener-service/Dockerfile
+    restart: always
+    ports:
+      - "5050:5050"
     deploy:
       mode: replicated
       replicas: 1
