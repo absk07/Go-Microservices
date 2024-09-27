@@ -37,8 +37,13 @@ func (consumer *Consumer) setup() error {
 }
 
 type Payload struct {
-	Name string `json:"name"`
-	Data string `json:"data"`
+	Method       string `json:"method"`
+	Path         string `json:"path"`
+	RemoteAddr   string `json:"remote_addr"`
+	ResponseTime string `json:"response_time"`
+	StartTime    string `json:"start_time"`
+	StatusCode   string `json:"status_code"`
+	Severity     string `json:"severity"`
 }
 
 func (consumer *Consumer) Listen(topics []string) error {
@@ -96,19 +101,23 @@ func (consumer *Consumer) Listen(topics []string) error {
 }
 
 func handlePayload(payload Payload) {
-	switch payload.Name {
-	case "log", "event":
-		err := logEvent(payload)
-		if err != nil {
-			log.Println(err)
-		}
-	case "auth":
-		// authenticate
-	default:
-		err := logEvent(payload)
-		if err != nil {
-			log.Println(err)
-		}
+	// switch payload.Name {
+	// case "log", "event":
+	// 	err := logEvent(payload)
+	// 	if err != nil {
+	// 		log.Println(err)
+	// 	}
+	// case "auth":
+	// 	// authenticate
+	// default:
+	// 	err := logEvent(payload)
+	// 	if err != nil {
+	// 		log.Println(err)
+	// 	}
+	// }
+	err := logEvent(payload)
+	if err != nil {
+		log.Println(err)
 	}
 }
 

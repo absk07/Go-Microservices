@@ -25,15 +25,16 @@ type Models struct {
 }
 
 type LogEntry struct {
-	ID           string    `bson:"_id,omitempty" json:"id,omitempty"`
-	Method       string    `bson:"method" json:"method"`
-	Path         string    `bson:"path" json:"path"`
-	RemoteAddr   string    `bson:"remote_addr" json:"remote_addr"`
-	ResponseTime string    `bson:"response_time" json:"response_time"`
-	StartTime    string    `bson:"start_time" json:"start_time"`
-	StatusCode   string    `bson:"status_code" json:"status_code"`
-	CreatedAt    time.Time `bson:"created_at" json:"created_at"`
-	UpdatedAt    time.Time `bson:"updated_at" json:"updated_at"`
+	ID           primitive.ObjectID `bson:"_id,omitempty" json:"id,omitempty"`
+	Method       string             `bson:"method" json:"method"`
+	Path         string             `bson:"path" json:"path"`
+	RemoteAddr   string             `bson:"remote_addr" json:"remote_addr"`
+	ResponseTime string             `bson:"response_time" json:"response_time"`
+	StartTime    string             `bson:"start_time" json:"start_time"`
+	StatusCode   string             `bson:"status_code" json:"status_code"`
+	Severity     string             `bson:"severity" json:"severity"`
+	CreatedAt    time.Time          `bson:"created_at" json:"created_at"`
+	UpdatedAt    time.Time          `bson:"updated_at" json:"updated_at"`
 }
 
 func (l *LogEntry) Insert(entry LogEntry) error {
@@ -46,6 +47,7 @@ func (l *LogEntry) Insert(entry LogEntry) error {
 		ResponseTime: entry.ResponseTime,
 		StartTime:    entry.StartTime,
 		StatusCode:   entry.StatusCode,
+		Severity:     entry.Severity,
 		CreatedAt:    time.Now(),
 		UpdatedAt:    time.Now(),
 	})

@@ -14,6 +14,7 @@ type logRequest struct {
 	ResponseTime string `json:"response_time"`
 	StartTime    string `json:"start_time"`
 	StatusCode   string `json:"status_code"`
+	Severity     string `json:"severity"`
 }
 
 func (app *Config) WriteLog(ctx *gin.Context) {
@@ -33,6 +34,7 @@ func (app *Config) WriteLog(ctx *gin.Context) {
 		ResponseTime: req.ResponseTime,
 		StartTime:    req.StartTime,
 		StatusCode:   req.StatusCode,
+		Severity:     req.Severity,
 	}
 
 	err := app.Models.LogEntry.Insert(event)

@@ -10,6 +10,8 @@ import (
 func (app *Config) Routes() *gin.Engine {
 	router := gin.Default()
 
+	router.Use(jsonLoggerMiddleware(app))
+
 	router.Use(cors.Default())
 
 	router.GET("/ping", func(ctx *gin.Context) {

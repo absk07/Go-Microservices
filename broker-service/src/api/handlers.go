@@ -6,8 +6,6 @@ import (
 
 	// "log"
 	"net/http"
-
-	"github.com/broker-service/events"
 	"github.com/gin-gonic/gin"
 )
 
@@ -30,8 +28,8 @@ type RequestPayload struct {
 	Action   string          `json:"action"`
 	Register RegisterPayload `json:"register,omitempty"`
 	Login    LoginPayload    `json:"login,omitempty"`
-	Log      LogPayload      `json:"log,omitempty"`
-	Mail     MailPayload     `json:"mail,omitempty"`
+	// Log      LogPayload      `json:"log,omitempty"`
+	// Mail     MailPayload     `json:"mail,omitempty"`
 }
 
 type RegisterPayload struct {
@@ -46,17 +44,12 @@ type LoginPayload struct {
 	Password string `json:"password"`
 }
 
-type LogPayload struct {
-	Name string `json:"name"`
-	Data string `json:"data"`
-}
-
-type MailPayload struct {
-	From    string `json:"from"`
-	To      string `json:"to"`
-	Subject string `json:"subject"`
-	Message string `json:"message"`
-}
+// type MailPayload struct {
+// 	From    string `json:"from"`
+// 	To      string `json:"to"`
+// 	Subject string `json:"subject"`
+// 	Message string `json:"message"`
+// }
 
 func (app *Config) HandleSubmission(ctx *gin.Context) {
 	var req RequestPayload
@@ -73,10 +66,10 @@ func (app *Config) HandleSubmission(ctx *gin.Context) {
 		app.register(ctx, req.Register)
 	case "login":
 		app.login(ctx, req.Login)
-	case "log":
-		app.logEventViaRabbitMQ(ctx, req.Log)
-	case "mail":
-		app.sendMail(ctx, req.Mail)
+	// case "log":
+	// 	app.logEventViaRabbitMQ(ctx, req.Log)
+	// case "mail":
+	// 	app.sendMail(ctx, req.Mail)
 	default:
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"error":   true,
@@ -234,7 +227,7 @@ func (app *Config) login(ctx *gin.Context, loginPayload LoginPayload) {
 	})
 }
 
-func (app *Config) logger(ctx *gin.Context, logPayload LogPayload) {
+/** func (app *Config) logger(ctx *gin.Context, logPayload LogPayload) {
 	jsonData, _ := json.Marshal(logPayload)
 
 	request, err := http.NewRequest("POST", "http://logger-service:7070/log", bytes.NewBuffer(jsonData))
@@ -289,9 +282,9 @@ func (app *Config) logger(ctx *gin.Context, logPayload LogPayload) {
 		"error":   false,
 		"message": "Logged!",
 	})
-}
+} */
 
-func (app *Config) sendMail(ctx *gin.Context, mailPayload MailPayload) {
+/** func (app *Config) sendMail(ctx *gin.Context, mailPayload MailPayload) {
 	jsonData, _ := json.Marshal(mailPayload)
 
 	request, err := http.NewRequest("POST", "http://mail-service:6060/send", bytes.NewBuffer(jsonData))
@@ -330,41 +323,4 @@ func (app *Config) sendMail(ctx *gin.Context, mailPayload MailPayload) {
 		"error":   false,
 		"message": "Email sent",
 	})
-}
-
-func (app *Config) logEventViaRabbitMQ(ctx *gin.Context, logPayload LogPayload) {
-	err := app.PushToQueue(logPayload.Name, logPayload.Data)
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{
-			"error":   true,
-			"message": err,
-		})
-		return
-	}
-
-	ctx.JSON(http.StatusAccepted, gin.H{
-		"error":   false,
-		"message": "Logged via rabbitmq",
-	})
-}
-
-func (app *Config) PushToQueue(name, msg string) error {
-	emtter, err := events.NewEventEmitter(app.RabbitConn)
-	if err != nil {
-		return err
-	}
-
-	payload := LogPayload{
-		Name: name,
-		Data: msg,
-	}
-
-	data, _ := json.Marshal(&payload)
-
-	err = emtter.Push(string(data), "log.INFO")
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
+} */
