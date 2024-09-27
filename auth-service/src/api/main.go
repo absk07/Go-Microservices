@@ -7,6 +7,7 @@ import (
 
 	"github.com/auth-service/data"
 	"github.com/jackc/pgx/v5/pgxpool"
+	amqp "github.com/rabbitmq/amqp091-go"
 )
 
 const PORT = ":9090"
@@ -14,6 +15,7 @@ const PORT = ":9090"
 type Config struct{
 	DB *pgxpool.Pool
 	Models data.Models
+	RabbitConn *amqp.Connection
 }
 
 func main() {
@@ -29,9 +31,16 @@ func main() {
 		log.Panic(err)
 	}
 
+	conn, err := connectRabbitMQ()
+	if err != nil {
+		log.Panicf("Error connecting to rabbitmq: %s", err)
+	}
+	defer conn.Close()
+
 	app := Config{
 		DB: connPool,
 		Models: *data.New(connPool),
+		RabbitConn: conn,
 	}
 
 	server := app.Routes()
@@ -40,4 +49,14 @@ func main() {
 	if err != nil {
 		log.Panic(err)
 	}
+}
+
+func connectRabbitMQ() (*amqp.Connection, error) {
+	conn, err := amqp.Dial("amqp://guest:guest@rabbitmq:5672/")
+	if err != nil {
+		log.Panicf("Error connecting to rabbitmq: %s", err)
+		return nil, err
+	}
+
+	return conn, nil
 }
